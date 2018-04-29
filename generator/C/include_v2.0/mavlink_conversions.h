@@ -146,9 +146,16 @@ MAVLINK_HELPER void mavlink_euler_to_quaternion(float roll, float pitch, float y
  */
 MAVLINK_HELPER void mavlink_dcm_to_quaternion(const float dcm[3][3], float quaternion[4])
 {
-    float tr = dcm[0][0] + dcm[1][1] + dcm[2][2];
+    float tr;
+    float s;
+    int dcm_i;
+    int i;
+    int dcm_j;
+    int dcm_k;
+    
+    tr = dcm[0][0] + dcm[1][1] + dcm[2][2];
     if (tr > 0.0f) {
-        float s = sqrtf(tr + 1.0f);
+        s = sqrtf(tr + 1.0f);
         quaternion[0] = s * 0.5f;
         s = 0.5f / s;
         quaternion[1] = (dcm[2][1] - dcm[1][2]) * s;
@@ -157,18 +164,17 @@ MAVLINK_HELPER void mavlink_dcm_to_quaternion(const float dcm[3][3], float quate
     } else {
         /* Find maximum diagonal element in dcm
          * store index in dcm_i */
-        int dcm_i = 0;
-        int i;
+        dcm_i = 0;
         for (i = 1; i < 3; i++) {
             if (dcm[i][i] > dcm[dcm_i][dcm_i]) {
                 dcm_i = i;
             }
         }
 
-        int dcm_j = (dcm_i + 1) % 3;
-        int dcm_k = (dcm_i + 2) % 3;
+        dcm_j = (dcm_i + 1) % 3;
+        dcm_k = (dcm_i + 2) % 3;
 
-        float s = sqrtf((dcm[dcm_i][dcm_i] - dcm[dcm_j][dcm_j] -
+        s = sqrtf((dcm[dcm_i][dcm_i] - dcm[dcm_j][dcm_j] -
                     dcm[dcm_k][dcm_k]) + 1.0f);
         quaternion[dcm_i + 1] = s * 0.5f;
         s = 0.5f / s;

@@ -111,16 +111,22 @@ MAVLINK_HELPER bool mavlink_signature_check(mavlink_signing_t *signing,
 					    mavlink_signing_streams_t *signing_streams,
 					    const mavlink_message_t *msg)
 {
-	if (signing == NULL) {
-		return true;
-	}
         const uint8_t *p = (const uint8_t *)&msg->magic;
 	const uint8_t *psig = msg->signature;
         const uint8_t *incoming_signature = psig+7;
 	mavlink_sha256_ctx ctx;
 	uint8_t signature[6];
 	uint16_t i;
+	union tstamp {
+	    uint64_t t64;
+	    uint8_t t8[8];
+	} tstamp;
+	uint8_t link_id;
+	union tstamp last_tstamp;
         
+	if (signing == NULL) {
+		return true;
+	}
 	mavlink_sha256_init(&ctx);
 	mavlink_sha256_update(&ctx, signing->secret_key, sizeof(signing->secret_key));
 	mavlink_sha256_update(&ctx, p, MAVLINK_CORE_HEADER_LEN+1+msg->len);
@@ -132,11 +138,7 @@ MAVLINK_HELPER bool mavlink_signature_check(mavlink_signing_t *signing,
 	}
 
 	// now check timestamp
-	union tstamp {
-	    uint64_t t64;
-	    uint8_t t8[8];
-	} tstamp;
-	uint8_t link_id = psig[0];
+	link_id = psig[0];
 	tstamp.t64 = 0;
 	memcpy(tstamp.t8, psig+1, 6);
 
@@ -167,7 +169,6 @@ MAVLINK_HELPER bool mavlink_signature_check(mavlink_signing_t *signing,
 		signing_streams->stream[i].link_id = link_id;
 		signing_streams->num_signing_streams++;
 	} else {
-		union tstamp last_tstamp;
 		last_tstamp.t64 = 0;
 		memcpy(last_tstamp.t8, signing_streams->stream[i].timestamp_bytes, 6);
 		if (tstamp.t64 <= last_tstamp.t64) {
