@@ -13,7 +13,7 @@ except LookupError:
 from setuptools import setup, Extension
 import glob, os, shutil, fnmatch, platform, sys
 
-version = '2.2.2'
+version = '2.2.8'
 
 
 def generate_content():
@@ -125,9 +125,12 @@ setup (name = 'pymavlink',
                                                      'C/include_v1.0/*.hpp',
                                                      'C/include_v2.0/*.h',
                                                      'C/include_v2.0/*.hpp',
-                                                     'CPP11/include_v2.0/*.hpp', ],
-                        'pymavlink' : ['mavnative/*.h'],
-                        'pymavlink' : ['message_definitions/v*/*.xml'] },
+                                                     'CPP11/include_v2.0/*.hpp',
+                                                     'CS/common/*.cs',
+                                                     'swift/*.swift',],
+                        'pymavlink'              : ['mavnative/*.h',
+                                                    'message_definitions/v*/*.xml']
+                        },
        packages = ['pymavlink',
                    'pymavlink.generator',
                    'pymavlink.dialects',
@@ -148,11 +151,15 @@ setup (name = 'pymavlink',
                    'tools/mavgen.py',
                    'tools/mavkml.py',
                    'tools/mavfft.py',
+                   'tools/mavfft_isb.py',
                    'tools/mavsummarize.py',
                    'tools/MPU6KSearch.py'],
        install_requires=[
             'future',
             'lxml',
+       ],
+       setup_requires=[
+           'future'  # future is required by mavgen, included by this file
        ],
        cmdclass={'build_py': custom_build_py},
        ext_modules = extensions
